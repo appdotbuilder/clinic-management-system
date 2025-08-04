@@ -1,15 +1,21 @@
 
+import { db } from '../db';
+import { specialtiesTable } from '../db/schema';
 import { type CreateSpecialtyInput, type Specialty } from '../schema';
 
-export async function createSpecialty(input: CreateSpecialtyInput): Promise<Specialty> {
-    // This is a placeholder declaration! Real code should be implemented here.
-    // The goal of this handler is creating a new medical specialty
-    // and persisting it in the database.
-    return Promise.resolve({
-        id: 0, // Placeholder ID
+export const createSpecialty = async (input: CreateSpecialtyInput): Promise<Specialty> => {
+  try {
+    const result = await db.insert(specialtiesTable)
+      .values({
         name: input.name,
-        description: input.description,
-        is_active: true,
-        created_at: new Date()
-    } as Specialty);
-}
+        description: input.description
+      })
+      .returning()
+      .execute();
+
+    return result[0];
+  } catch (error) {
+    console.error('Specialty creation failed:', error);
+    throw error;
+  }
+};

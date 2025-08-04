@@ -1,15 +1,16 @@
 
+import { db } from '../db';
+import { patientsTable } from '../db/schema';
 import { type CreatePatientInput, type Patient } from '../schema';
 
-export async function createPatient(input: CreatePatientInput): Promise<Patient> {
-    // This is a placeholder declaration! Real code should be implemented here.
-    // The goal of this handler is creating a new patient record
-    // and persisting it in the database.
-    return Promise.resolve({
-        id: 0, // Placeholder ID
+export const createPatient = async (input: CreatePatientInput): Promise<Patient> => {
+  try {
+    // Insert patient record - convert Date to string for date column
+    const result = await db.insert(patientsTable)
+      .values({
         first_name: input.first_name,
         last_name: input.last_name,
-        date_of_birth: input.date_of_birth,
+        date_of_birth: input.date_of_birth.toISOString().split('T')[0], // Convert Date to YYYY-MM-DD string
         gender: input.gender,
         phone: input.phone,
         email: input.email,
@@ -19,8 +20,19 @@ export async function createPatient(input: CreatePatientInput): Promise<Patient>
         medical_history: input.medical_history,
         allergies: input.allergies,
         current_medications: input.current_medications,
-        insurance_info: input.insurance_info,
-        created_at: new Date(),
-        updated_at: new Date()
-    } as Patient);
-}
+        insurance_info: input.insurance_info
+      })
+      .returning()
+      .execute();
+
+    // Convert string date back to Date object for return
+    const patient = result[0];
+    return {
+      ...patient,
+      date_of_birth: new Date(patient.date_of_birth)
+    };
+  } catch (error) {
+    console.error('Patient creation failed:', error);
+    throw error;
+  }
+};

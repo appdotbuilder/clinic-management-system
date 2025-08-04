@@ -1,9 +1,19 @@
 
+import { db } from '../db';
+import { documentsTable } from '../db/schema';
 import { type Document } from '../schema';
+import { eq } from 'drizzle-orm';
 
 export async function getPatientDocuments(patientId: number): Promise<Document[]> {
-    // This is a placeholder declaration! Real code should be implemented here.
-    // The goal of this handler is fetching all documents for a specific patient
-    // with uploader and doctor information.
-    return [];
+  try {
+    const results = await db.select()
+      .from(documentsTable)
+      .where(eq(documentsTable.patient_id, patientId))
+      .execute();
+
+    return results;
+  } catch (error) {
+    console.error('Failed to fetch patient documents:', error);
+    throw error;
+  }
 }
